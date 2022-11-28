@@ -26,6 +26,7 @@ methodsToPatch.forEach(function (method) {
   // cache original method
   const original = arrayProto[method]
   def(arrayMethods, method, function mutator(...args) {
+    // 调用原型中的方法，保留数组方法原有的数组处理能力
     const result = original.apply(this, args)
     const ob = this.__ob__
     let inserted

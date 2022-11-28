@@ -7,6 +7,7 @@ import { isTextInputType } from 'web/util/element'
 import { looseEqual, looseIndexOf } from 'shared/util'
 import { mergeVNodeHook } from 'core/vdom/helpers/index'
 import { warn, isIE9, isIE, isEdge } from 'core/util/index'
+console.log('ccccccccc')
 
 /* istanbul ignore if */
 if (isIE9) {

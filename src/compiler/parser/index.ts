@@ -856,6 +856,7 @@ function processAttrs(el) {
           addAttr(el, name, value, list[i], isDynamic)
         }
       } else if (onRE.test(name)) {
+        debugger
         // v-on
         name = name.replace(onRE, '')
         isDynamic = dynamicArgRE.test(name)

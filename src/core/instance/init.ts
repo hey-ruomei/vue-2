@@ -72,6 +72,8 @@ export function initMixin(Vue: typeof Component) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
+    // 渲染组件
+    // 此过程会收集 render watcher
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }

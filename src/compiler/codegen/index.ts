@@ -351,6 +351,7 @@ export function genData(el: ASTElement, state: CodegenState): string {
   if (el.wrapData) {
     data = el.wrapData(data)
   }
+  console.log('el不下来：', el)
   // v-on data wrap
   if (el.wrapListeners) {
     data = el.wrapListeners(data)

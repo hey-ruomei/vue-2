@@ -196,6 +196,7 @@ export function mountComponent(
     }
   } else {
     updateComponent = () => {
+      // 渲染组件
       vm._update(vm._render(), hydrating)
     }
   }
@@ -216,6 +217,7 @@ export function mountComponent(
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 实例化 render watcher
   new Watcher(
     vm,
     updateComponent,

@@ -50,9 +50,11 @@ export class Observer {
   vmCount: number // number of vms that have this object as root $data
 
   constructor(public value: any, public shallow = false, public mock = false) {
+    // 为 observer 实例添加 dep 属性
     // this.value = value
     this.dep = mock ? mockDep : new Dep()
     this.vmCount = 0
+    // 为数据添加响应式标识 __ob__
     def(value, '__ob__', this)
     if (isArray(value)) {
       if (!mock) {
@@ -77,6 +79,7 @@ export class Observer {
        * value type is Object.
        */
       const keys = Object.keys(value)
+      // 遍历传进来的数据的所有属性, 对每一个属性进行 getter/setter 转换
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i]
         defineReactive(value, key, NO_INIITIAL_VALUE, undefined, shallow, mock)
@@ -118,6 +121,7 @@ export function observe(
     !isRef(value) &&
     !(value instanceof VNode)
   ) {
+    // 实例化 Observe
     return new Observer(value, shallow, ssrMockReactivity)
   }
 }
@@ -133,6 +137,7 @@ export function defineReactive(
   shallow?: boolean,
   mock?: boolean
 ) {
+  // 这里实例化 Dep 是为了调用实例中的添加依赖的方法
   const dep = new Dep()
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
@@ -156,6 +161,7 @@ export function defineReactive(
     configurable: true,
     get: function reactiveGetter() {
       const value = getter ? getter.call(obj) : val
+      // Dep.target 指向 watcher 实例，正在处理的 target 全局唯一
       if (Dep.target) {
         if (__DEV__) {
           dep.depend({
@@ -164,6 +170,8 @@ export function defineReactive(
             key
           })
         } else {
+          // 触发依赖收集 dep.depend => watcher.addDep(dep) => dep.addSub(watcher)
+          // TODO 为啥要绕这么一圈呢，直接 dep.addSub(Dep.target) 不行吗？
           dep.depend()
         }
         if (childOb) {
@@ -204,6 +212,7 @@ export function defineReactive(
           oldValue: value
         })
       } else {
+        // 触发依赖更新
         dep.notify()
       }
     }

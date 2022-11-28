@@ -131,6 +131,7 @@ export default class Watcher implements DepTarget {
    * Evaluate the getter, and re-collect dependencies.
    */
   get() {
+    // 设置 dep.target 为当前watcher实例
     pushTarget(this)
     let value
     const vm = this.vm
@@ -157,6 +158,8 @@ export default class Watcher implements DepTarget {
   /**
    * Add a dependency to this directive.
    */
+  // 添加依赖：watcher 入 dep.subs 列表
+  // 并且还需要将 dep 添加到 watcher 实例的 deps 列表中
   addDep(dep: Dep) {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
@@ -210,6 +213,8 @@ export default class Watcher implements DepTarget {
    */
   run() {
     if (this.active) {
+      // 更新 computed watcher 即给 computed 的变量赋新的值
+      // 赋值完成后又会触发 computed 的变量对应的依赖更新
       const value = this.get()
       if (
         value !== this.value ||
@@ -221,7 +226,9 @@ export default class Watcher implements DepTarget {
       ) {
         // set new value
         const oldValue = this.value
+        // 这里会触发 computed watcher 的变量对应的依赖更新
         this.value = value
+        // user watcher: 用户传入的 watch 函数
         if (this.user) {
           const info = `callback for watcher "${this.expression}"`
           invokeWithErrorHandling(
@@ -250,9 +257,13 @@ export default class Watcher implements DepTarget {
   /**
    * Depend on all deps collected by this watcher.
    */
+  // TODO 将当前 watcher 实例的 deps 列表遍历一遍，重新触发每一个 dep 去收集当前 watcher？
   depend() {
     let i = this.deps.length
+    debugger
+    console.log(this.deps, 'watcher.depend测试')
     while (i--) {
+      // TODO 每一个收集了当前 watcher 的数据，都重新收集一遍？
       this.deps[i].depend()
     }
   }

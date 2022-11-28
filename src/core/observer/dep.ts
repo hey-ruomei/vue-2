@@ -40,10 +40,11 @@ export default class Dep {
     this.subs = []
   }
 
+  // 添加依赖
   addSub(sub: DepTarget) {
     this.subs.push(sub)
   }
-
+  // 移除依赖
   removeSub(sub: DepTarget) {
     // #12696 deps with massive amount of subscribers are extremely slow to
     // clean up in Chromium
@@ -56,8 +57,13 @@ export default class Dep {
     }
   }
 
+  // 添加依赖 watcher 入 dep.subs 列表
   depend(info?: DebuggerEventExtraInfo) {
     if (Dep.target) {
+      // 真正触发依赖收集是 watcher 实例通过调用其 addDep 方法实现的
+      // watcher.addDep 方法接受 dep 实例作为参数
+      // watcher.addDep 方法中会调用 dep.addSub 来添加依赖
+      debugger
       Dep.target.addDep(this)
       if (__DEV__ && info && Dep.target.onTrack) {
         Dep.target.onTrack({
@@ -68,6 +74,7 @@ export default class Dep {
     }
   }
 
+  // 触发更新
   notify(info?: DebuggerEventExtraInfo) {
     // stabilize the subscriber list first
     const subs = this.subs.filter(s => s) as DepTarget[]
@@ -77,6 +84,7 @@ export default class Dep {
       // order
       subs.sort((a, b) => a.id - b.id)
     }
+    // 遍历依赖列表，触发每一个依赖的 update 方法
     for (let i = 0, l = subs.length; i < l; i++) {
       const sub = subs[i]
       if (__DEV__ && info) {

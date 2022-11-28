@@ -39,6 +39,7 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+// 数据代理
 export function proxy(target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter() {
     return this[sourceKey][key]
@@ -57,13 +58,16 @@ export function initState(vm: Component) {
   initSetup(vm)
 
   if (opts.methods) initMethods(vm, opts.methods)
+  // 1. 初始化 data
   if (opts.data) {
     initData(vm)
   } else {
     const ob = observe((vm._data = {}))
     ob && ob.vmCount++
   }
+  // 2. 初始化 computed
   if (opts.computed) initComputed(vm, opts.computed)
+  // 3. 初始化 watch
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
@@ -119,6 +123,7 @@ function initProps(vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+// data 数据的响应式转换入口
 function initData(vm: Component) {
   let data: any = vm.$options.data
   data = vm._data = isFunction(data) ? getData(data, vm) : data || {}
@@ -151,14 +156,17 @@ function initData(vm: Component) {
           vm
         )
     } else if (!isReserved(key)) {
+      // 数据代理 => 通过this[key]可以读取this._data[key]的值
       proxy(vm, `_data`, key)
     }
   }
+  // 执行setter/getter转换
   // observe data
   const ob = observe(data)
   ob && ob.vmCount++
 }
 
+// 通过调用传入的 data 函数返回 data 对象
 export function getData(data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
   pushTarget()
@@ -176,6 +184,7 @@ const computedWatcherOptions = { lazy: true }
 
 function initComputed(vm: Component, computed: Object) {
   // $flow-disable-line
+  // 将所有 computed watcher 挂载到 vm 实例的 _computedWatchers 属性中
   const watchers = (vm._computedWatchers = Object.create(null))
   // computed properties are just getters during SSR
   const isSSR = isServerRendering()
@@ -189,6 +198,7 @@ function initComputed(vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // 为每一个computed 属性创建一个 computed watcher 实例
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -201,6 +211,7 @@ function initComputed(vm: Component, computed: Object) {
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
     if (!(key in vm)) {
+      // computed 属性绑定，可通过 vm[computedKey] 访问 computed property
       defineComputed(vm, key, userDef)
     } else if (__DEV__) {
       if (key in vm.$data) {
@@ -223,6 +234,8 @@ export function defineComputed(
   userDef: Record<string, any> | (() => any)
 ) {
   const shouldCache = !isServerRendering()
+  // 将用户传入的 computed property 的 getter 函数设置为 vm[computedKey] 的 getter
+  // 后续在读取 computed 属性的时候，会触发 computedGetter
   if (isFunction(userDef)) {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
@@ -251,6 +264,8 @@ function createComputedGetter(key) {
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // computed watcher 求值
+      // watcher.get => pushTarget 这个过程会使得 Dep.target 设置为当前 watcher
       if (watcher.dirty) {
         watcher.evaluate()
       }
@@ -263,8 +278,17 @@ function createComputedGetter(key) {
             key
           })
         }
+        // DONE 依赖收集？
+        // 这里就起个名字叫 依赖自收集 吧
+        // 为什么这里要调 watcher.depend ?
+        // 将当前 computed watcher 依赖添加到数据的依赖列表中去
+        // 使得数据更新时，computed property 会触发 getter 函数求取新的值
+        // 这里的 数据 ，指的是 computed 中 getter 函数读取到的 vm[dataKey]
+        // 总的来说，就是触发 computed getter 函数中读取到的响应式数据 vm[dataKey] 收集当前 computed watcher
+        debugger
         watcher.depend()
       }
+      // 返回 computed property 的 getter 返回值
       return watcher.value
     }
   }
@@ -373,6 +397,7 @@ export function stateMixin(Vue: typeof Component) {
     }
     options = options || {}
     options.user = true
+    // user watcher
     const watcher = new Watcher(vm, expOrFn, cb, options)
     if (options.immediate) {
       const info = `callback for immediate watcher "${watcher.expression}"`
