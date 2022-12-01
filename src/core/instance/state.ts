@@ -278,14 +278,13 @@ function createComputedGetter(key) {
             key
           })
         }
-        // DONE 依赖收集？
+        // DONE 依赖收集
         // 这里就起个名字叫 依赖自收集 吧
         // 为什么这里要调 watcher.depend ?
         // 将当前 computed watcher 依赖添加到数据的依赖列表中去
         // 使得数据更新时，computed property 会触发 getter 函数求取新的值
         // 这里的 数据 ，指的是 computed 中 getter 函数读取到的 vm[dataKey]
         // 总的来说，就是触发 computed getter 函数中读取到的响应式数据 vm[dataKey] 收集当前 computed watcher
-        debugger
         watcher.depend()
       }
       // 返回 computed property 的 getter 返回值

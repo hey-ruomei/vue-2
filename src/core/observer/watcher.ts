@@ -257,13 +257,15 @@ export default class Watcher implements DepTarget {
   /**
    * Depend on all deps collected by this watcher.
    */
-  // TODO 将当前 watcher 实例的 deps 列表遍历一遍，重新触发每一个 dep 去收集当前 watcher？
+  // DONE 将当前 watcher 实例的 deps 列表遍历一遍，重新触发每一个 dep 去收集当前 watcher？
+  // 例如 computed watcher，需要自身添加到 getter 中依赖到的 vm[dataKey] 数据的依赖列表里面去
+  // 使得后续 vm[dataKey] 更新后能出发 computed 属性重新求值
+  // TODO 那么重新求求值后是在哪里触发重新渲染的呢？
   depend() {
     let i = this.deps.length
     debugger
     console.log(this.deps, 'watcher.depend测试')
     while (i--) {
-      // TODO 每一个收集了当前 watcher 的数据，都重新收集一遍？
       this.deps[i].depend()
     }
   }
